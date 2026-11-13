@@ -132,8 +132,10 @@ public class SlopeOne {
      */
     public Map<ItemId, Float> weightlesspredict(Map<ItemId, Float> user) {
         HashMap<ItemId, Float> predictions = new HashMap<>();
+        HashMap<ItemId, Integer> counts = new HashMap<>();
         for (ItemId j : mDiffMatrix.keySet()) {
             predictions.put(j, 0.0f);
+            counts.put(j, 0);
         }
         for (ItemId j : user.keySet()) {
             for (ItemId k : mDiffMatrix.keySet()) {
@@ -141,11 +143,16 @@ public class SlopeOne {
                 if (diff != null) {
                     float nouvelleValeur = diff + user.get(j);
                     predictions.put(k, predictions.get(k) + nouvelleValeur);
+                    counts.put(k, counts.get(k) + 1);
                 }
             }
         }
+        // On divise par le nombre de différences réellement disponibles,
+        // et non par le nombre total d'articles notés par l'utilisateur.
         for (ItemId j : predictions.keySet()) {
-            predictions.put(j, predictions.get(j) / user.size());
+            if (counts.get(j) != 0) {
+                predictions.put(j, predictions.get(j) / counts.get(j));
+            }
         }
         for (ItemId j : user.keySet()) {
             predictions.put(j, user.get(j));
@@ -226,6 +233,15 @@ class UserId {
         return content.hashCode();
     }
 
+    // equals doit être redéfini avec hashCode : deux identifiants de même
+    // contenu désignent le même utilisateur.
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof UserId)) return false;
+        return content.equals(((UserId) o).content);
+    }
+
     @Override
     public String toString() {
         return content;
@@ -245,6 +261,15 @@ class ItemId {
     @Override
     public int hashCode() {
         return content.hashCode();
+    }
+
+    // equals doit être redéfini avec hashCode : deux identifiants de même
+    // contenu désignent le même article.
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof ItemId)) return false;
+        return content.equals(((ItemId) o).content);
     }
 
     @Override
